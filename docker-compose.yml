@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: 'rabbitmq'
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - twitterApp
+    
+  twitter_consumer_app:
+    container_name: twitter_consumer_app
+    build:
+      dockerfile: TwitterStreamV2App/Dockerfile
+      context: .
+    volumes:
+      - twitter_consumer_app:/usr/share/twitter_consumer_app
+    networks:
+      - twitterApp
+    depends_on:
+      - rabbitmq
+  
+  rabbitmq_consumer_app:
+    container_name: rabbitmq_consumer_app
+    build:
+      dockerfile: TwitterMassagesConsumerApp/Dockerfile
+      context: .
+    volumes:
+      - rabbitmq_consumer_app:/usr/share/rabbitmq_consumer_app
+    networks:
+      - twitterApp
+    depends_on:
+      - twitter_consumer_app
+
+networks:
+  twitterApp:
+
+volumes:
+  rabbitmq:
+  twitter_consumer_app:
+  rabbitmq_consumer_app:
