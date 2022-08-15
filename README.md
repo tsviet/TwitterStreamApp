@@ -30,3 +30,5 @@ How to make results persistent:
 - Each TwitterMassagesConsumerApp will need to save data into a NoSQL database like DynamoDb from AWS.
 - NoSQL Db provides a lock implementation that can be used to update concurrent writes. 
 - To do that replace the implementation of StorageRepository with a NoSQL one. 
+
+TODO: Add Unit and intergration Tests to cover functionality with testing. 
