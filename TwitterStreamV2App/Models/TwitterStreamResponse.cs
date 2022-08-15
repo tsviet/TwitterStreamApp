@@ -5,7 +5,7 @@ namespace TwitterStreamV2App.Models;
 public record TwitterStreamResponse
 {
     [JsonPropertyName("entities")]
-    public Entities Entities { get; set; }
+    public Entities? Entities { get; set; }
 }
 
 public record Entities
@@ -17,5 +17,5 @@ public record Entities
 public record Hashtag
 {
     [JsonPropertyName("tag")]
-    public string Tag { get; set; }
+    public string? Tag { get; set; }
 }

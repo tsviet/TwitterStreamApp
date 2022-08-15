@@ -1,11 +1,8 @@
 ﻿using FluentAssertions;
-using Microsoft.Extensions.Options;
-using Moq;
 using NSubstitute;
 using TwitterStreamV2App.Interfaces;
 using TwitterStreamV2App.Models;
 using TwitterStreamV2App.Services;
-using TwitterStreamV2App.Unit.Tests.Mocks;
 
 namespace TwitterStreamV2App.Unit.Tests;
 
@@ -25,7 +22,7 @@ public class TwitterStreamServiceTests
     {
         //Arrange 
         var ct = new CancellationToken();
-        var mockData = new List<TwitterStreamService.TwitterSingleObject<TwitterStreamResponse>>
+        var mockData = new List<TwitterSingleObject<TwitterStreamResponse>>
         {
             new (new TwitterStreamResponse
             {
@@ -33,11 +30,11 @@ public class TwitterStreamServiceTests
                 {
                     Hashtags = new List<Hashtag>
                     {
-                        new Hashtag
+                        new()
                         {
                             Tag = "Test1"
                         },
-                        new Hashtag
+                        new()
                         {
                             Tag = "Test2"
                         }
@@ -50,11 +47,11 @@ public class TwitterStreamServiceTests
                 {
                     Hashtags = new List<Hashtag>
                     {
-                        new Hashtag
+                        new()
                         {
                             Tag = "Test3"
                         },
-                        new Hashtag
+                        new()
                         {
                             Tag = "Test4"
                         }
@@ -63,7 +60,7 @@ public class TwitterStreamServiceTests
             }),
         };
        
-        _restClientService.GetTwitterStream<TwitterStreamService.TwitterSingleObject<TwitterStreamResponse>>("test", CancellationToken.None)
+        _restClientService.GetTwitterStream<TwitterSingleObject<TwitterStreamResponse>>("test", CancellationToken.None)
             .Returns(mockData.ToAsyncEnumerable());
         
         //Act
@@ -73,7 +70,7 @@ public class TwitterStreamServiceTests
             result = twitterStreamResponse;
         }
         //Assert
-        result.Entities.Hashtags?.FirstOrDefault()?.Tag.Should().Be("Test1");
+        result.Entities?.Hashtags?.FirstOrDefault()?.Tag.Should().Be("Test1");
         
     }
 }

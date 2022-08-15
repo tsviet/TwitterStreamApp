@@ -1,22 +1,25 @@
 ﻿using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using TwitterMassagesConsumerApp.Interfaces;
 using TwitterMassagesConsumerApp.Models;
+using TwitterMassagesConsumerApp.Services.Interfaces;
 
 namespace TwitterMassagesConsumerApp.Services;
 
-public class QueueConnectService : IQueueConnectService
+public class RabbitMqConnectService : IQueueConnectService
 {
     private readonly IOptionsSnapshot<RabbitMqOptions> _rabbitMqOptions;
 
-    public QueueConnectService(IOptionsSnapshot<RabbitMqOptions> rabbitMqOptions)
+    public RabbitMqConnectService(IOptionsSnapshot<RabbitMqOptions> rabbitMqOptions)
     {
         _rabbitMqOptions = rabbitMqOptions;
     }
 
     public IModel Connect()
     {
-        var factory = new ConnectionFactory { HostName = _rabbitMqOptions.Value.Server };
+        var factory = new ConnectionFactory
+        {
+            HostName = _rabbitMqOptions.Value.Server
+        };
         var chanel = ConnectChannel(factory);
         chanel.QueueDeclare(queue: _rabbitMqOptions.Value.QueueName,
             durable: false,

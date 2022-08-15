@@ -4,32 +4,32 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using TwitterMassagesConsumerApp.Interfaces;
 using TwitterMassagesConsumerApp.Models;
+using TwitterMassagesConsumerApp.Repositories.Interfaces;
+using TwitterMassagesConsumerApp.Services.Interfaces;
 
 namespace TwitterMassagesConsumerApp.Services;
 
-public class QueueService : IQueueService
+public class RabbitMqService : IQueueService
 {
     private readonly IOptionsSnapshot<RabbitMqOptions> _rabbitMqOptions;
-    private static readonly Dictionary<string, int> Storage = new();
+    private readonly IStorageRepository _storageRepository;
     private static readonly object Lock = new();
     private static int _totalCount = 0;
 
     private IModel Channel { get; }
 
-    public QueueService(IOptionsSnapshot<RabbitMqOptions> rabbitMqOptions, IQueueConnectService queueConnectService)
+    public RabbitMqService(IOptionsSnapshot<RabbitMqOptions> rabbitMqOptions, IQueueConnectService queueConnectService,
+        IStorageRepository storageRepository)
     {
         _rabbitMqOptions = rabbitMqOptions;
+        _storageRepository = storageRepository;
         Channel = queueConnectService.Connect();
     }
 
     public Task GetMessagesAsync()
     {
-        
-        var consumer = new AsyncEventingBasicConsumer(Channel);
-        consumer.Received += MessageHandlerAsync;
-        
+        var consumer = CreateConsumer();
         while (true)
         {
             Channel.BasicConsume(queue: _rabbitMqOptions.Value.QueueName,
@@ -38,31 +38,36 @@ public class QueueService : IQueueService
         }
     }
 
-    private Task MessageHandlerAsync(object? sender, BasicDeliverEventArgs basicDeliverEventArgs)
+    private EventingBasicConsumer CreateConsumer()
+    {
+        var consumer = new EventingBasicConsumer(Channel);
+        consumer.Received += MessageHandlerAsync;
+        return consumer;
+    }
+
+    private void MessageHandlerAsync(object? sender, BasicDeliverEventArgs basicDeliverEventArgs)
     {
         var body = basicDeliverEventArgs.Body.ToArray();
         var message = Encoding.UTF8.GetString(body);
         var twitterStreamResponse = JsonConvert.DeserializeObject<TwitterStreamResponse>(message);
         
-        if(twitterStreamResponse == null) return Task.CompletedTask;
+        if(twitterStreamResponse == null) return;
 
         lock (Lock)
         {
             _totalCount++;
             foreach (var hashtag in twitterStreamResponse.Entities.Hashtags)
             {
-                AddNewTag(hashtag);
-                IncrementTagValue(hashtag);
+                _storageRepository.AddNewTag(hashtag.Tag);
+                _storageRepository.IncrementTagValue(hashtag.Tag);
             }
 
-            if (_totalCount % 200 != 0) return Task.CompletedTask;
+            if (_totalCount % 200 != 0) return;
+            var topTenHashes = _storageRepository.GetTop10Hashes();
+            PrintResults(topTenHashes);
         }
-
-        var topTenHashes = Storage.OrderByDescending(x => x.Value).Take(10);
-        PrintResults(topTenHashes);
-        return Task.CompletedTask;
     }
-
+    
     private static void PrintResults(IEnumerable<KeyValuePair<string, int>> topTenHashes)
     {
         var sb = new StringBuilder();
@@ -78,16 +83,5 @@ public class QueueService : IQueueService
         }
 
         Console.WriteLine(sb.ToString());
-    }
-
-    private static void IncrementTagValue(Hashtag hashtag)
-    {
-        Storage[hashtag.Tag] += 1;
-    }
-
-    private static void AddNewTag(Hashtag hashtag)
-    {
-        if (!Storage.ContainsKey(hashtag.Tag))
-            Storage.Add(hashtag.Tag, 1);
     }
 }

@@ -5,18 +5,21 @@ using TwitterStreamV2App.Models;
 
 namespace TwitterStreamV2App.Services;
 
-public class QueueConnectService : IQueueConnectService
+public class RabbitMqConnectService : IQueueConnectService
 {
     private readonly IOptionsSnapshot<RabbitMqOptions> _rabbitMqOptions;
 
-    public QueueConnectService(IOptionsSnapshot<RabbitMqOptions> rabbitMqOptions)
+    public RabbitMqConnectService(IOptionsSnapshot<RabbitMqOptions> rabbitMqOptions)
     {
         _rabbitMqOptions = rabbitMqOptions;
     }
 
     public IModel Connect()
     {
-        var factory = new ConnectionFactory { HostName = _rabbitMqOptions.Value.Server };
+        var factory = new ConnectionFactory
+        {
+            HostName = _rabbitMqOptions.Value.Server
+        };
         var chanel = ConnectChannel(factory);
         chanel.QueueDeclare(queue: _rabbitMqOptions.Value.QueueName,
             durable: false,

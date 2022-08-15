@@ -13,10 +13,10 @@ using IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((_, services) =>
     {
         OptionsConfig.Register(services, config);
-        services.AddScoped<IQueueConnectService, QueueConnectService>();
+        services.AddScoped<IQueueConnectService, RabbitMqConnectService>();
         services.AddTransient<IRestClientService, RestClientService>();
         services.AddTransient<ITwitterStreamService, TwitterStreamService>();
-        services.AddTransient<IQueueService, QueueService>();
+        services.AddTransient<IQueueService, RabbitMqService>();
         services.AddScoped<App>();
     }).Build();
 

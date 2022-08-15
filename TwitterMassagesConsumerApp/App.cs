@@ -1,4 +1,4 @@
-using TwitterMassagesConsumerApp.Interfaces;
+using TwitterMassagesConsumerApp.Services.Interfaces;
 
 namespace TwitterMassagesConsumerApp;
 

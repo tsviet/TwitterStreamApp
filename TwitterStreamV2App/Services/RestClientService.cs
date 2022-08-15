@@ -10,19 +10,17 @@ namespace TwitterStreamV2App.Services;
 public class RestClientService : IRestClientService
 {
     private readonly RestClient _client;
-    private readonly IOptionsSnapshot<TwitterOptions> _twitterOptions;
-    
+
     public RestClientService(IOptionsSnapshot<TwitterOptions> twitterOptions)
     {
-        _twitterOptions = twitterOptions;
-        var options = new RestClientOptions($"{_twitterOptions.Value.BaseUrl}/{_twitterOptions.Value.ApiVersion}")
+        var options = new RestClientOptions($"{twitterOptions.Value.BaseUrl}/{twitterOptions.Value.ApiVersion}")
         {
             MaxTimeout = 300000, //5 min
         };
         
         _client = new RestClient(options)
         {
-            Authenticator = new JwtAuthenticator(_twitterOptions.Value.BearerToken)
+            Authenticator = new JwtAuthenticator(twitterOptions.Value.BearerToken)
         };
     }
     

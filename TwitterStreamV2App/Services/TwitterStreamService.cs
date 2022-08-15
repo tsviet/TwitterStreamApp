@@ -10,8 +10,8 @@ namespace TwitterStreamV2App.Services;
 
 public class TwitterStreamService : ITwitterStreamService
 {
-    const string TweetSampleStreamEndpointName = "tweets/sample/stream?tweet.fields=entities";
-    public record TwitterSingleObject<T>(T Data);
+    private const string TweetSampleStreamEndpointName = "tweets/sample/stream?tweet.fields=entities";
+    
     private readonly IRestClientService _restClientService;
     private readonly IQueueService _queueService;
     
@@ -25,17 +25,17 @@ public class TwitterStreamService : ITwitterStreamService
     {
         await foreach (var twitterStreamResponse in RequestTwitterStreamAsync(cancellationToken))
         {
-            if (twitterStreamResponse.Entities.Hashtags == null) continue;
-
             _queueService.SendMessage(twitterStreamResponse);
 
-            Console.WriteLine($"[{DateTime.UtcNow:hh:mm:ss.fff}] {twitterStreamResponse.Entities.Hashtags}");
+            Console.WriteLine($"[{DateTime.UtcNow:hh:mm:ss.fff}] {twitterStreamResponse}");
         }
     }
 
     public async IAsyncEnumerable<TwitterStreamResponse> RequestTwitterStreamAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var response = _restClientService.GetTwitterStream<TwitterSingleObject<TwitterStreamResponse>>(TweetSampleStreamEndpointName, cancellationToken);
+        var response =
+            _restClientService.GetTwitterStream<TwitterSingleObject<TwitterStreamResponse>>(
+                TweetSampleStreamEndpointName, cancellationToken);
         await foreach (var item in response.WithCancellation(cancellationToken)) {
             yield return item.Data;
         }

@@ -1,6 +1,6 @@
 ﻿using RabbitMQ.Client;
 
-namespace TwitterMassagesConsumerApp.Interfaces;
+namespace TwitterMassagesConsumerApp.Services.Interfaces;
 
 public interface IQueueConnectService
 {

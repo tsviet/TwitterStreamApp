@@ -7,13 +7,13 @@ using TwitterStreamV2App.Models;
 
 namespace TwitterStreamV2App.Services;
 
-public class QueueService : IQueueService
+public class RabbitMqService : IQueueService
 {
     private readonly IOptionsSnapshot<RabbitMqOptions> _rabbitMqOptions;
 
     private IModel Channel { get; }
 
-    public QueueService(IOptionsSnapshot<RabbitMqOptions> rabbitMqOptions, IQueueConnectService queueConnectService)
+    public RabbitMqService(IOptionsSnapshot<RabbitMqOptions> rabbitMqOptions, IQueueConnectService queueConnectService)
     {
         _rabbitMqOptions = rabbitMqOptions;
 
