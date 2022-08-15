@@ -2,11 +2,11 @@ version: '3.9'
 
 services:
   rabbitmq:
-    image: rabbitmq:latest
+    image: rabbitmq:3.10.7
     container_name: 'rabbitmq'
     ports:
-      - "5673:5672"
-      - "15673:15672"
+      - "5672:5672"
+      - "15672:15672"
     volumes:
       - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
       - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
@@ -24,6 +24,8 @@ services:
       - twitterApp
     depends_on:
       - rabbitmq
+    links:
+      - rabbitmq
   
   rabbitmq_consumer_app:
     container_name: rabbitmq_consumer_app
@@ -36,6 +38,8 @@ services:
       - twitterApp
     depends_on:
       - twitter_consumer_app
+    links:
+      - rabbitmq
 
 networks:
   twitterApp:

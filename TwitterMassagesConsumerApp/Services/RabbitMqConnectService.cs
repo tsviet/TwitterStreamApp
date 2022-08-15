@@ -27,6 +27,8 @@ public class RabbitMqConnectService : IQueueConnectService
             autoDelete: false,
             arguments: null);
         
+        chanel.BasicQos(0, 20, false);
+        
         return chanel;
     }
     

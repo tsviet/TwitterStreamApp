@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.Extensions.Options;
+using Polly;
 using RestSharp;
 using RestSharp.Authenticators;
 using TwitterStreamV2App.Interfaces;
@@ -23,12 +24,25 @@ public class TwitterStreamService : ITwitterStreamService
 
     public async Task CollectTweets(CancellationToken cancellationToken = default)
     {
-        await foreach (var twitterStreamResponse in RequestTwitterStreamAsync(cancellationToken))
+        try
         {
-            _queueService.SendMessage(twitterStreamResponse);
+            var count = 10;
+            var retryPolicy = Policy.Handle<Exception>()
+                .WaitAndRetryAsync(retryCount: count, sleepDurationProvider: _ => TimeSpan.FromSeconds(Math.Pow(2, count)));
 
-            Console.WriteLine($"[{DateTime.UtcNow:hh:mm:ss.fff}] {twitterStreamResponse}");
+            await retryPolicy.ExecuteAsync(async () =>
+            {
+                await foreach (var twitterStreamResponse in RequestTwitterStreamAsync(cancellationToken))
+                {
+                    _queueService.SendMessage(twitterStreamResponse);
+                }
+            });
         }
+        catch (Exception)
+        {
+            Console.WriteLine("Rabbit MQ fail to connect...");
+        }
+        
     }
 
     public async IAsyncEnumerable<TwitterStreamResponse> RequestTwitterStreamAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)

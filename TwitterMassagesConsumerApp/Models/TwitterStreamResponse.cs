@@ -11,7 +11,7 @@ public record TwitterStreamResponse
 public record Entities
 {
     [JsonPropertyName("hashtags")]
-    public List<Hashtag> Hashtags { get; set; }
+    public List<Hashtag>? Hashtags { get; set; }
 }
 
 public record Hashtag

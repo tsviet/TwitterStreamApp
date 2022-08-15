@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Polly;
 using RabbitMQ.Client;
 using TwitterStreamV2App.Interfaces;
 using TwitterStreamV2App.Models;
@@ -11,13 +12,23 @@ public class RabbitMqService : IQueueService
 {
     private readonly IOptionsSnapshot<RabbitMqOptions> _rabbitMqOptions;
 
-    private IModel Channel { get; }
+    private IModel? Channel { get; set; }
 
     public RabbitMqService(IOptionsSnapshot<RabbitMqOptions> rabbitMqOptions, IQueueConnectService queueConnectService)
     {
         _rabbitMqOptions = rabbitMqOptions;
 
-        Channel = queueConnectService.Connect();
+        try
+        {
+            var retryPolicy = Policy.Handle<Exception>()
+                .WaitAndRetry(retryCount: 10, sleepDurationProvider: _ => TimeSpan.FromSeconds(5));
+
+            retryPolicy.Execute(() => { Channel = queueConnectService.Connect(); });
+        }
+        catch (Exception)
+        {
+            Console.WriteLine("Rabbit MQ fail to connect...");
+        }
     }
 
     public void SendMessage(object message)
