@@ -7,6 +7,7 @@ using RabbitMQ.Client.Events;
 using TwitterMassagesConsumerApp.Models;
 using TwitterMassagesConsumerApp.Repositories.Interfaces;
 using TwitterMassagesConsumerApp.Services.Interfaces;
+using TwitterStreamV2App.Models;
 
 namespace TwitterMassagesConsumerApp.Services;
 
@@ -51,21 +52,23 @@ public class RabbitMqService : IQueueService
     private EventingBasicConsumer CreateConsumer()
     {
         var consumer = new EventingBasicConsumer(Channel);
-        consumer.Received += MessageHandlerAsync;
+        consumer.Received += MessageHandler;
         return consumer;
     }
 
-    private void MessageHandlerAsync(object? sender, BasicDeliverEventArgs basicDeliverEventArgs)
+    private void MessageHandler(object? sender, BasicDeliverEventArgs basicDeliverEventArgs)
     {
         var body = basicDeliverEventArgs.Body.ToArray();
         var message = Encoding.UTF8.GetString(body);
-        var twitterStreamResponse = JsonConvert.DeserializeObject<TwitterStreamResponse>(message);
+        var twitterStreamResponse = JsonConvert.DeserializeObject<TwitterSingleObject>(message);
 
-        if(twitterStreamResponse?.Entities?.Hashtags == null) return;
+        if(twitterStreamResponse?.Data?.Entities?.Hashtags == null) return;
 
         _totalCount++;
-        foreach (var hashtag in twitterStreamResponse.Entities.Hashtags)
+        foreach (var hashtag in twitterStreamResponse.Data.Entities.Hashtags)
         {
+            if (hashtag.Tag == null) continue;
+            
             _storageRepository.AddNewTag(hashtag.Tag);
             _storageRepository.IncrementTagValue(hashtag.Tag);
         }

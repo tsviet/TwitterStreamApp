@@ -8,5 +8,5 @@ public interface ITwitterStreamService
 {
     public Task CollectTweets(CancellationToken cancellationToken = default);
 
-    IAsyncEnumerable<TwitterStreamResponse> RequestTwitterStreamAsync(CancellationToken cancellationToken = default);
+    IAsyncEnumerable<TwitterSingleObject>  RequestTwitterStreamAsync(CancellationToken cancellationToken = default);
 }

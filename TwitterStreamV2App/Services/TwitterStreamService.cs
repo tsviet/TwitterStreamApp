@@ -1,9 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Text;
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Polly;
-using RestSharp;
-using RestSharp.Authenticators;
 using TwitterStreamV2App.Interfaces;
 using TwitterStreamV2App.Models;
 
@@ -15,43 +14,62 @@ public class TwitterStreamService : ITwitterStreamService
     
     private readonly IRestClientService _restClientService;
     private readonly IQueueService _queueService;
+    private readonly ILogger<TwitterStreamService> _logger;
     
-    public TwitterStreamService(IRestClientService restClientService, IQueueService queueService)
+    public TwitterStreamService(IRestClientService restClientService, IQueueService queueService, ILogger<TwitterStreamService> logger)
     {
         _restClientService = restClientService;
         _queueService = queueService;
+        _logger = logger;
     }
 
     public async Task CollectTweets(CancellationToken cancellationToken = default)
     {
         try
         {
-            var count = 10;
             var retryPolicy = Policy.Handle<Exception>()
-                .WaitAndRetryAsync(retryCount: count, sleepDurationProvider: _ => TimeSpan.FromSeconds(Math.Pow(2, count)));
+                .WaitAndRetryForeverAsync(
+                    sleepDurationProvider: retryNumber => TimeSpan.FromSeconds(Math.Pow(2, retryNumber)),
+                    (exception, attempt) =>
+                    {
+                        _logger.LogInformation("Attempt: {Attempt}, Found new {Message}", attempt, exception.Message );
+                        ShouldStopExecution(exception);
+                    });
 
             await retryPolicy.ExecuteAsync(async () =>
             {
                 await foreach (var twitterStreamResponse in RequestTwitterStreamAsync(cancellationToken))
                 {
                     _queueService.SendMessage(twitterStreamResponse);
+                    
+                    _logger.LogInformation("HashTags: {SerializeObject}", JsonConvert.SerializeObject(twitterStreamResponse.Data?.Entities?.Hashtags ?? new List<Hashtag>()));
                 }
             });
         }
         catch (Exception)
         {
-            Console.WriteLine("Rabbit MQ fail to connect...");
+            _logger.LogError("Fail to get Twits after max retry....");
         }
         
     }
 
-    public async IAsyncEnumerable<TwitterStreamResponse> RequestTwitterStreamAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<TwitterSingleObject> RequestTwitterStreamAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var response =
-            _restClientService.GetTwitterStream<TwitterSingleObject<TwitterStreamResponse>>(
+            _restClientService.GetTwitterStream<TwitterSingleObject>(
                 TweetSampleStreamEndpointName, cancellationToken);
         await foreach (var item in response.WithCancellation(cancellationToken)) {
-            yield return item.Data;
+            yield return item;
+        }
+    }
+    
+    private void ShouldStopExecution(Exception ex)
+    {
+        switch (ex)
+        {
+            case UnauthorizedAccessException:
+            case BadHttpRequestException:
+                throw ex;
         }
     }
     

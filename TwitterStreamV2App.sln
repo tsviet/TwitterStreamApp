@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitterStreamV2App.Unit.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitterMassagesConsumerApp", "TwitterMassagesConsumerApp\TwitterMassagesConsumerApp.csproj", "{2279678A-4848-401D-BB29-631036F7D727}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitterMassagesConsumerApp.Unit.Tests", "TwitterMassagesConsumerApp.Unit.Tests\TwitterMassagesConsumerApp.Unit.Tests.csproj", "{23454002-E8FC-4947-938C-EE9A6856BF46}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,10 +30,15 @@ Global
 		{2279678A-4848-401D-BB29-631036F7D727}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2279678A-4848-401D-BB29-631036F7D727}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2279678A-4848-401D-BB29-631036F7D727}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23454002-E8FC-4947-938C-EE9A6856BF46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23454002-E8FC-4947-938C-EE9A6856BF46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23454002-E8FC-4947-938C-EE9A6856BF46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23454002-E8FC-4947-938C-EE9A6856BF46}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6B0078B3-B14D-439B-942B-0F90A02275AD} = {A7C5ABA6-BF7B-429A-A9E1-8061AA4E6546}
 		{9180B21F-6206-473F-9773-5FB9A331DA01} = {6B6F0739-5BB9-4E82-988E-1067CF619DEF}
 		{2279678A-4848-401D-BB29-631036F7D727} = {A7C5ABA6-BF7B-429A-A9E1-8061AA4E6546}
+		{23454002-E8FC-4947-938C-EE9A6856BF46} = {6B6F0739-5BB9-4E82-988E-1067CF619DEF}
 	EndGlobalSection
 EndGlobal

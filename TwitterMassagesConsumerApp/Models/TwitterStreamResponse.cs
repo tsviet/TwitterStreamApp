@@ -1,21 +1,21 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TwitterMassagesConsumerApp.Models;
+namespace TwitterStreamV2App.Models;
 
-public record TwitterStreamResponse
+public class TwitterStreamResponse
 {
     [JsonPropertyName("entities")]
-    public Entities Entities { get; set; }
+    public Entities? Entities { get; set; }
 }
 
-public record Entities
+public class Entities
 {
     [JsonPropertyName("hashtags")]
     public List<Hashtag>? Hashtags { get; set; }
 }
 
-public record Hashtag
+public class Hashtag
 {
     [JsonPropertyName("tag")]
-    public string Tag { get; set; }
+    public string? Tag { get; set; }
 }
