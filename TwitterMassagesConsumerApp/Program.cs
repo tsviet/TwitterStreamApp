@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 using TwitterMassagesConsumerApp;
 using TwitterMassagesConsumerApp.Configuration;
 using TwitterMassagesConsumerApp.Repositories;
@@ -11,7 +12,13 @@ using TwitterMassagesConsumerApp.Services.Interfaces;
 var builder = new ConfigurationBuilder().AddJsonFile($"appsettings.json", true, true);
 var config = builder.Build();
 
-using IHost host = Host.CreateDefaultBuilder(args)
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Async(wt => wt.Console())
+    .CreateLogger();
+
+using var host = Host.CreateDefaultBuilder(args)
+    .UseSerilog((_, loggerConfiguration) =>
+        loggerConfiguration.ReadFrom.Configuration(config))
     .ConfigureServices((_, services) =>
     {
         OptionsConfig.Register(services, config);

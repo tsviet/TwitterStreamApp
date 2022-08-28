@@ -7,20 +7,18 @@ namespace TwitterStreamV2App.Services;
 
 public class RabbitMqConnectService : IQueueConnectService
 {
+    private readonly IRabbitMqConnectionFactory _connectionFactory;
     private readonly IOptionsSnapshot<RabbitMqOptions> _rabbitMqOptions;
 
-    public RabbitMqConnectService(IOptionsSnapshot<RabbitMqOptions> rabbitMqOptions)
+    public RabbitMqConnectService(IRabbitMqConnectionFactory connectionFactory, IOptionsSnapshot<RabbitMqOptions> rabbitMqOptions)
     {
+        _connectionFactory = connectionFactory;
         _rabbitMqOptions = rabbitMqOptions;
     }
 
     public IModel Connect()
     {
-        var factory = new ConnectionFactory
-        {
-            HostName = _rabbitMqOptions.Value.Server
-        };
-        var chanel = ConnectChannel(factory);
+        var chanel = ConnectChannel(_connectionFactory);
         chanel.QueueDeclare(queue: _rabbitMqOptions.Value.QueueName,
             durable: false,
             exclusive: false,
@@ -30,7 +28,7 @@ public class RabbitMqConnectService : IQueueConnectService
         return chanel;
     }
     
-    private static IModel ConnectChannel(IConnectionFactory factory)
+    private static IModel ConnectChannel(IRabbitMqConnectionFactory factory)
     {
         var connection = factory.CreateConnection();
         var chanel = connection.CreateModel();
