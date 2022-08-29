@@ -42,7 +42,7 @@ public class TwitterStreamService : ITwitterStreamService
                 {
                     _queueService.SendMessage(twitterStreamResponse);
                     
-                    _logger.LogInformation("HashTags: {SerializeObject}", JsonConvert.SerializeObject(twitterStreamResponse.Data?.Entities?.Hashtags ?? new List<Hashtag>()));
+                    //_logger.LogInformation("HashTags: {SerializeObject}", JsonConvert.SerializeObject(twitterStreamResponse.Data?.Entities?.Hashtags ?? new List<Hashtag>()));
                 }
             });
         }
